@@ -210,6 +210,11 @@ module Unix = struct
   let write_bytes t bs off len =
     write t (Cstruct.of_bigarray ~off ~len bs)
 
+  let epoch t =
+    match t.state with
+    | `Active st -> Tls.Engine.epoch st
+    | _          -> `InitialEpoch
+
 end
 
 
@@ -230,7 +235,7 @@ and connect_ext ?trace conf addr =
   Unix.connect ?trace conf addr >|= of_t
 
 let accept ?trace certificate =
-  let config = Tls.Config.server ~certificates:(Some certificate, []) ()
+  let config = Tls.Config.server ~certificates:certificate ()
   in accept_ext ?trace config
 
 and connect ?trace authenticator addr =
