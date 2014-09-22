@@ -1,3 +1,8 @@
+(trunk):
+* support for AEAD ciphers, currently CCM
+* distinguish between supported hash and mac algorithms
+  (using Nocrypto.Hash) and those which may occur on the wire
+
 0.2.0 (2014-10-30):
 * expose trust anchor when authenticating the certificate (requires x509 >= 0.2)
 * information about the active session is exposed via epoch : state -> epoch
