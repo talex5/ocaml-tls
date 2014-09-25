@@ -132,3 +132,32 @@ let server_hello_valid sh =
   (* TODO:
       - EC stuff must be present if EC ciphersuite chosen
    *)
+
+let signature version data sig_algs hashes private_key =
+  let open Nocrypto in
+  let (<+>) = Cs.(<+>) in
+  let sign x =
+    match Rsa.PKCS1.sign private_key x with
+    | None        -> fail_handshake
+    | Some signed -> return signed
+  in
+  match version with
+  | TLS_1_0 | TLS_1_1 ->
+     sign Hash.( MD5.digest data <+> SHA1.digest data )
+     >|= Writer.assemble_digitally_signed
+  | TLS_1_2 ->
+     (* if no signature_algorithms extension is sent by the client,
+             support for md5 and sha1 can be safely assumed! *)
+     ( match sig_algs with
+       | None              -> return `SHA1
+       | Some client_algos ->
+          let client_hashes =
+            List.(map fst @@ filter (fun (_, x) -> x = Packet.RSA) client_algos)
+          in
+          match first_match client_hashes hashes with
+          | None      -> fail_handshake
+          | Some hash -> return hash )
+     >>= fun hash_algo ->
+     let hash = Hash.digest hash_algo data in
+     let cs = Asn_grammars.pkcs1_digest_info_to_cstruct (hash_algo, hash) in
+     sign cs >|= Writer.assemble_digitally_signed_1_2 hash_algo Packet.RSA
