@@ -73,6 +73,7 @@ val client :
   ?version       : tls_version * tls_version ->
   ?hashes        : Hash.hash list ->
   ?reneg         : bool ->
+  ?certificates  : own_cert ->
   ?authenticator : X509.Authenticator.t ->
   ?secure_reneg  : bool ->
   unit -> client
