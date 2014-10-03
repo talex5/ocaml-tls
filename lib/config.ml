@@ -87,14 +87,6 @@ let validate_common config =
   if List.length config.ciphers = 0 then
     invalid "set of ciphers is empty"
 
-let validate_client config = ()
-
-module CertTypeUsageOrdered = struct
-  type t = Certificate.key_type * Asn_grammars.Extension.key_usage
-  let compare = compare
-end
-module CertTypeUsageSet = Set.Make(CertTypeUsageOrdered)
-
 let validate_certificate_chain = function
   | (s::chain, priv) ->
      let pub = Rsa.pub_of_priv priv in
@@ -110,6 +102,12 @@ let validate_certificate_chain = function
                                     (Certificate.certificate_failure_to_string x)) )
        | None -> () )
   | _ -> invalid "certificate"
+
+let validate_client config =
+  match config.own_certificates with
+  | `None -> ()
+  | `Single c -> validate_certificate_chain c
+  | _ -> invalid_arg "multiple client certificates not supported in client config"
 
 module StringSet = Set.Make(String)
 
@@ -133,6 +131,12 @@ let non_overlapping cs =
                  check ss
   in
   check namessets
+
+module CertTypeUsageOrdered = struct
+  type t = Certificate.key_type * Asn_grammars.Extension.key_usage
+  let compare = compare
+end
+module CertTypeUsageSet = Set.Make(CertTypeUsageOrdered)
 
 let validate_server config =
   let open Ciphersuite in
