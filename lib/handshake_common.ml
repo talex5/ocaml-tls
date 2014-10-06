@@ -1,6 +1,10 @@
+open Nocrypto
+
 open Utils
 open Core
 open State
+
+let (<+>) = Cs.(<+>)
 
 let empty = function [] -> true | _ -> false
 
@@ -135,8 +139,6 @@ let server_hello_valid sh =
    *)
 
 let signature version data sig_algs hashes private_key =
-  let open Nocrypto in
-  let (<+>) = Cs.(<+>) in
   let sign x =
     match Rsa.PKCS1.sign private_key x with
     | None        -> fail_handshake
