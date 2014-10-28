@@ -1,4 +1,5 @@
 (trunk):
+* client authentication
 * server side SNI configuration possible (see sni.md)
 
 0.2.0 (2014-10-30):
